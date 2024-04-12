@@ -1,0 +1,18 @@
+{
+  "name": "subgraphs",
+  "private": true,
+  "workspaces": ["packages/*", "subgraphs/*"],
+  "scripts": {
+    "build": "bunx turbo run build",
+    "test": "bunx turbo run test",
+    "fmt": "biome format --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.6.4",
+    "@graphprotocol/graph-cli": "^0.69.2",
+    "@graphprotocol/graph-ts": "^0.34.0",
+    "@turbo/codemod": "^1.13.2",
+    "mustache": "^4.2.0",
+    "turbo": "^1.13.2"
+  }
+}

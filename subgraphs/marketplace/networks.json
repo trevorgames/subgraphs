@@ -1,0 +1,8 @@
+{
+  "trevor-sepolia": {
+    "TrevorMarketplace": {
+      "address": "0x50c06ba5C0811267175F5285c3e308BA1A95ab20",
+      "startBlock": 18558
+    }
+  }
+}

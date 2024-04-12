@@ -1,0 +1,17 @@
+node_modules
+generated
+build
+dist
+
+package-lock.json
+yarn.lock
+.pnp.*
+
+**/tests/.*/
+
+.vscode
+
+# turbo
+.turbo
+build/**
+dist/**

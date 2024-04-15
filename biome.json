@@ -21,7 +21,8 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noShadowRestrictedNames": "off"
+        "noShadowRestrictedNames": "off",
+        "noDoubleEquals": "off"
       },
       "style": {
         "noNonNullAssertion": "off",

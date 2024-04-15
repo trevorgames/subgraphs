@@ -1,218 +1,49 @@
-type BidAccepted @entity(immutable: true) {
+type Collection @entity {
   id: Bytes!
-  seller: Bytes! # address
-  bidder: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  quantity: BigInt! # uint64
-  pricePerItem: BigInt! # uint128
-  paymentToken: Bytes! # address
-  bidType: Int! # uint8
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+
+  name: String "TODO"
+  symbol: String "TODO"
+  address: Bytes!
+  standard: TokenStandard!
+
+  owners: [User!]!
+  tokens: [Token!]! @derivedFrom(field: "collection")
+  totalItems: BigInt!
+  totalOwners: BigInt!
+
+  # floorPrice: BigInt!
+  # listings: [Listing!]! @derivedFrom(field: "collection")
+  # totalListings: BigInt!
+  # totalSales: BigInt!
+  # totalVolume: BigInt!
 }
 
-type CollectionBidCancelled @entity(immutable: true) {
+type Token @entity {
   id: Bytes!
-  bidder: Bytes! # address
-  nftAddress: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+
+  collection: Collection!
+  tokenId: BigInt!
+
+  "Owner of token for ERC721, null for ERC1155"
+  owner: User
+  "Owners of token for ERC1155"
+  owners: [UserToken!]! @derivedFrom(field: "token")
 }
 
-type CollectionBidCreatedOrUpdated @entity(immutable: true) {
+type User @entity {
   id: Bytes!
-  bidder: Bytes! # address
-  nftAddress: Bytes! # address
-  quantity: BigInt! # uint64
-  pricePerItem: BigInt! # uint128
-  expirationTime: BigInt! # uint64
-  paymentToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+
+  tokens: [UserToken!]! @derivedFrom(field: "user")
 }
 
-type Initialized @entity(immutable: true) {
+type UserToken @entity {
   id: Bytes!
-  version: BigInt! # uint64
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  user: User!
+  token: Token!
+  quantity: BigInt!
 }
 
-type ItemCanceled @entity(immutable: true) {
-  id: Bytes!
-  seller: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ItemListed @entity(immutable: true) {
-  id: Bytes!
-  seller: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  quantity: BigInt! # uint64
-  pricePerItem: BigInt! # uint128
-  expirationTime: BigInt! # uint64
-  paymentToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ItemSold @entity(immutable: true) {
-  id: Bytes!
-  seller: Bytes! # address
-  buyer: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  quantity: BigInt! # uint64
-  pricePerItem: BigInt! # uint128
-  paymentToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ItemUpdated @entity(immutable: true) {
-  id: Bytes!
-  seller: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  quantity: BigInt! # uint64
-  pricePerItem: BigInt! # uint128
-  expirationTime: BigInt! # uint64
-  paymentToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Paused @entity(immutable: true) {
-  id: Bytes!
-  account: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type RoleAdminChanged @entity(immutable: true) {
-  id: Bytes!
-  role: Bytes! # bytes32
-  previousAdminRole: Bytes! # bytes32
-  newAdminRole: Bytes! # bytes32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type RoleGranted @entity(immutable: true) {
-  id: Bytes!
-  role: Bytes! # bytes32
-  account: Bytes! # address
-  sender: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type RoleRevoked @entity(immutable: true) {
-  id: Bytes!
-  role: Bytes! # bytes32
-  account: Bytes! # address
-  sender: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type TokenApprovalStatusUpdated @entity(immutable: true) {
-  id: Bytes!
-  nft: Bytes! # address
-  status: Int! # uint8
-  paymentToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type TokenBidCancelled @entity(immutable: true) {
-  id: Bytes!
-  bidder: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type TokenBidCreatedOrUpdated @entity(immutable: true) {
-  id: Bytes!
-  bidder: Bytes! # address
-  nftAddress: Bytes! # address
-  tokenId: BigInt! # uint256
-  quantity: BigInt! # uint64
-  pricePerItem: BigInt! # uint128
-  expirationTime: BigInt! # uint64
-  paymentToken: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Unpaused @entity(immutable: true) {
-  id: Bytes!
-  account: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type UpdateCollectionOwnerFee @entity(immutable: true) {
-  id: Bytes!
-  _collection: Bytes! # address
-  _recipient: Bytes! # address
-  _fee: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type UpdateFee @entity(immutable: true) {
-  id: Bytes!
-  fee: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type UpdateFeeRecipient @entity(immutable: true) {
-  id: Bytes!
-  feeRecipient: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type UpdateFeeWithCollectionOwner @entity(immutable: true) {
-  id: Bytes!
-  fee: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type UpdateSalesTracker @entity(immutable: true) {
-  id: Bytes!
-  _priceTrackerAddress: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+enum TokenStandard {
+  ERC721
+  ERC1155
 }

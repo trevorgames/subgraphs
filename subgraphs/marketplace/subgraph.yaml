@@ -4,83 +4,129 @@ indexerHints:
 schema:
   file: ./schema.graphql
 dataSources:
+  # - kind: ethereum
+  #   name: TrevorMarketplace
+  #   network: trevor-sepolia
+  #   source:
+  #     address: "0x50c06ba5C0811267175F5285c3e308BA1A95ab20"
+  #     abi: TrevorMarketplace
+  #     startBlock: 18558
+  #   mapping:
+  #     kind: ethereum/events
+  #     apiVersion: 0.0.7
+  #     language: wasm/assemblyscript
+  #     entities:
+  #       - BidAccepted
+  #       - CollectionBidCancelled
+  #       - CollectionBidCreatedOrUpdated
+  #       - Initialized
+  #       - ItemCanceled
+  #       - ItemListed
+  #       - ItemSold
+  #       - ItemUpdated
+  #       - Paused
+  #       - RoleAdminChanged
+  #       - RoleGranted
+  #       - RoleRevoked
+  #       - TokenApprovalStatusUpdated
+  #       - TokenBidCancelled
+  #       - TokenBidCreatedOrUpdated
+  #       - Unpaused
+  #       - UpdateCollectionOwnerFee
+  #       - UpdateFee
+  #       - UpdateFeeRecipient
+  #       - UpdateFeeWithCollectionOwner
+  #       - UpdateSalesTracker
+  #     abis:
+  #       - name: TrevorMarketplace
+  #         file: ./abis/TrevorMarketplace.json
+  #     eventHandlers:
+  #       - event: BidAccepted(address,address,address,uint256,uint64,uint128,address,uint8)
+  #         handler: handleBidAccepted
+  #       - event: CollectionBidCancelled(address,address)
+  #         handler: handleCollectionBidCancelled
+  #       - event: CollectionBidCreatedOrUpdated(address,address,uint64,uint128,uint64,address)
+  #         handler: handleCollectionBidCreatedOrUpdated
+  #       - event: Initialized(uint64)
+  #         handler: handleInitialized
+  #       - event: ItemCanceled(indexed address,indexed address,indexed uint256)
+  #         handler: handleItemCanceled
+  #       - event: ItemListed(address,address,uint256,uint64,uint128,uint64,address)
+  #         handler: handleItemListed
+  #       - event: ItemSold(address,address,address,uint256,uint64,uint128,address)
+  #         handler: handleItemSold
+  #       - event: ItemUpdated(address,address,uint256,uint64,uint128,uint64,address)
+  #         handler: handleItemUpdated
+  #       - event: Paused(address)
+  #         handler: handlePaused
+  #       - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+  #         handler: handleRoleAdminChanged
+  #       - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+  #         handler: handleRoleGranted
+  #       - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+  #         handler: handleRoleRevoked
+  #       - event: TokenApprovalStatusUpdated(address,uint8,address)
+  #         handler: handleTokenApprovalStatusUpdated
+  #       - event: TokenBidCancelled(address,address,uint256)
+  #         handler: handleTokenBidCancelled
+  #       - event: TokenBidCreatedOrUpdated(address,address,uint256,uint64,uint128,uint64,address)
+  #         handler: handleTokenBidCreatedOrUpdated
+  #       - event: Unpaused(address)
+  #         handler: handleUnpaused
+  #       - event: UpdateCollectionOwnerFee(address,address,uint256)
+  #         handler: handleUpdateCollectionOwnerFee
+  #       - event: UpdateFee(uint256)
+  #         handler: handleUpdateFee
+  #       - event: UpdateFeeRecipient(address)
+  #         handler: handleUpdateFeeRecipient
+  #       - event: UpdateFeeWithCollectionOwner(uint256)
+  #         handler: handleUpdateFeeWithCollectionOwner
+  #       - event: UpdateSalesTracker(address)
+  #         handler: handleUpdateSalesTracker
+  #     file: ./src/trevor-marketplace.ts
   - kind: ethereum
-    name: TrevorMarketplace
+    name: ERC1155
     network: trevor-sepolia
     source:
-      address: "0x50c06ba5C0811267175F5285c3e308BA1A95ab20"
-      abi: TrevorMarketplace
-      startBlock: 18558
+      address: "0xd01e21b2fdfa8909bcd90f65f572a86b33e72400"
+      abi: ERC1155
+      startBlock: 4459
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - BidAccepted
-        - CollectionBidCancelled
-        - CollectionBidCreatedOrUpdated
-        - Initialized
-        - ItemCanceled
-        - ItemListed
-        - ItemSold
-        - ItemUpdated
-        - Paused
-        - RoleAdminChanged
-        - RoleGranted
-        - RoleRevoked
-        - TokenApprovalStatusUpdated
-        - TokenBidCancelled
-        - TokenBidCreatedOrUpdated
-        - Unpaused
-        - UpdateCollectionOwnerFee
-        - UpdateFee
-        - UpdateFeeRecipient
-        - UpdateFeeWithCollectionOwner
-        - UpdateSalesTracker
+        - TransferBatch
+        - TransferSingle
+        - URI
       abis:
-        - name: TrevorMarketplace
-          file: ./abis/TrevorMarketplace.json
+        - name: ERC1155
+          file: ./abis/ERC1155.json
       eventHandlers:
-        - event: BidAccepted(address,address,address,uint256,uint64,uint128,address,uint8)
-          handler: handleBidAccepted
-        - event: CollectionBidCancelled(address,address)
-          handler: handleCollectionBidCancelled
-        - event: CollectionBidCreatedOrUpdated(address,address,uint64,uint128,uint64,address)
-          handler: handleCollectionBidCreatedOrUpdated
-        - event: Initialized(uint64)
-          handler: handleInitialized
-        - event: ItemCanceled(indexed address,indexed address,indexed uint256)
-          handler: handleItemCanceled
-        - event: ItemListed(address,address,uint256,uint64,uint128,uint64,address)
-          handler: handleItemListed
-        - event: ItemSold(address,address,address,uint256,uint64,uint128,address)
-          handler: handleItemSold
-        - event: ItemUpdated(address,address,uint256,uint64,uint128,uint64,address)
-          handler: handleItemUpdated
-        - event: Paused(address)
-          handler: handlePaused
-        - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
-          handler: handleRoleAdminChanged
-        - event: RoleGranted(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleGranted
-        - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-          handler: handleRoleRevoked
-        - event: TokenApprovalStatusUpdated(address,uint8,address)
-          handler: handleTokenApprovalStatusUpdated
-        - event: TokenBidCancelled(address,address,uint256)
-          handler: handleTokenBidCancelled
-        - event: TokenBidCreatedOrUpdated(address,address,uint256,uint64,uint128,uint64,address)
-          handler: handleTokenBidCreatedOrUpdated
-        - event: Unpaused(address)
-          handler: handleUnpaused
-        - event: UpdateCollectionOwnerFee(address,address,uint256)
-          handler: handleUpdateCollectionOwnerFee
-        - event: UpdateFee(uint256)
-          handler: handleUpdateFee
-        - event: UpdateFeeRecipient(address)
-          handler: handleUpdateFeeRecipient
-        - event: UpdateFeeWithCollectionOwner(uint256)
-          handler: handleUpdateFeeWithCollectionOwner
-        - event: UpdateSalesTracker(address)
-          handler: handleUpdateSalesTracker
-      file: ./src/trevor-marketplace.ts
+        - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
+          handler: handleTransferBatch
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: URI(string,indexed uint256)
+          handler: handleURI
+      file: ./src/mappings/erc1155.ts
+  - kind: ethereum
+    name: ERC721
+    network: trevor-sepolia
+    source:
+      address: "0xb6b89a26ff415c2d1007d92cc879ff27f967cfce"
+      abi: ERC721
+      startBlock: 73599
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Transfer
+      abis:
+        - name: ERC721
+          file: ./abis/ERC721.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+      file: ./src/mappings/erc721.ts

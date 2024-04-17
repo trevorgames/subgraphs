@@ -1,49 +1,69 @@
 type Collection @entity {
-  id: Bytes!
+    id: Bytes!
 
-  name: String "TODO"
-  symbol: String "TODO"
-  address: Bytes!
-  standard: TokenStandard!
+    name: String
+    "TODO"
+    symbol: String
+    "TODO"
+    address: Bytes!
+    standard: TokenStandard!
 
-  owners: [User!]!
-  tokens: [Token!]! @derivedFrom(field: "collection")
-  totalItems: BigInt!
-  totalOwners: BigInt!
+    owners: [User!]!
+    tokens: [Token!]! @derivedFrom(field: "collection")
+    totalItems: BigInt!
+    totalOwners: BigInt!
 
-  # floorPrice: BigInt!
-  # listings: [Listing!]! @derivedFrom(field: "collection")
-  # totalListings: BigInt!
-  # totalSales: BigInt!
-  # totalVolume: BigInt!
+    floorPrice: BigInt!
+    listings: [Listing!]! @derivedFrom(field: "collection")
+    totalListings: BigInt!
+    totalSales: BigInt!
+    totalVolume: BigInt!
+}
+
+type Listing @entity {
+    id: Bytes!
+
+    collection: Collection!
+    token: Token!
+    seller: User!
+    quantity: BigInt!
+    pricePerItem: BigInt!
+    expirationTime: BigInt!
+    paymentToken: Bytes!
+
+    buyer: User
 }
 
 type Token @entity {
-  id: Bytes!
+    id: Bytes!
 
-  collection: Collection!
-  tokenId: BigInt!
+    collection: Collection!
+    tokenId: BigInt!
 
-  "Owner of token for ERC721, null for ERC1155"
-  owner: User
-  "Owners of token for ERC1155"
-  owners: [UserToken!]! @derivedFrom(field: "token")
+    "Owner of token for ERC721, null for ERC1155"
+    owner: User
+    "Owners of token for ERC1155"
+    owners: [UserToken!]! @derivedFrom(field: "token")
+
+    listings: [Listing!]! @derivedFrom(field: "token")
+    floorPrice: BigInt
 }
 
 type User @entity {
-  id: Bytes!
+    id: Bytes!
 
-  tokens: [UserToken!]! @derivedFrom(field: "user")
+    tokens: [UserToken!]! @derivedFrom(field: "user")
+    listings: [Listing!]! @derivedFrom(field: "seller")
 }
 
 type UserToken @entity {
-  id: Bytes!
-  user: User!
-  token: Token!
-  quantity: BigInt!
+    id: Bytes!
+    user: User!
+    token: Token!
+    quantity: BigInt!
 }
 
 enum TokenStandard {
-  ERC721
-  ERC1155
+    ERC721
+    ERC1155
 }

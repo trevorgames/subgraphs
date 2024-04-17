@@ -4,86 +4,88 @@ indexerHints:
 schema:
   file: ./schema.graphql
 dataSources:
-  # - kind: ethereum
-  #   name: TrevorMarketplace
-  #   network: trevor-sepolia
-  #   source:
-  #     address: "0x50c06ba5C0811267175F5285c3e308BA1A95ab20"
-  #     abi: TrevorMarketplace
-  #     startBlock: 18558
-  #   mapping:
-  #     kind: ethereum/events
-  #     apiVersion: 0.0.7
-  #     language: wasm/assemblyscript
-  #     entities:
-  #       - BidAccepted
-  #       - CollectionBidCancelled
-  #       - CollectionBidCreatedOrUpdated
-  #       - Initialized
-  #       - ItemCanceled
-  #       - ItemListed
-  #       - ItemSold
-  #       - ItemUpdated
-  #       - Paused
-  #       - RoleAdminChanged
-  #       - RoleGranted
-  #       - RoleRevoked
-  #       - TokenApprovalStatusUpdated
-  #       - TokenBidCancelled
-  #       - TokenBidCreatedOrUpdated
-  #       - Unpaused
-  #       - UpdateCollectionOwnerFee
-  #       - UpdateFee
-  #       - UpdateFeeRecipient
-  #       - UpdateFeeWithCollectionOwner
-  #       - UpdateSalesTracker
-  #     abis:
-  #       - name: TrevorMarketplace
-  #         file: ./abis/TrevorMarketplace.json
-  #     eventHandlers:
-  #       - event: BidAccepted(address,address,address,uint256,uint64,uint128,address,uint8)
-  #         handler: handleBidAccepted
-  #       - event: CollectionBidCancelled(address,address)
-  #         handler: handleCollectionBidCancelled
-  #       - event: CollectionBidCreatedOrUpdated(address,address,uint64,uint128,uint64,address)
-  #         handler: handleCollectionBidCreatedOrUpdated
-  #       - event: Initialized(uint64)
-  #         handler: handleInitialized
-  #       - event: ItemCanceled(indexed address,indexed address,indexed uint256)
-  #         handler: handleItemCanceled
-  #       - event: ItemListed(address,address,uint256,uint64,uint128,uint64,address)
-  #         handler: handleItemListed
-  #       - event: ItemSold(address,address,address,uint256,uint64,uint128,address)
-  #         handler: handleItemSold
-  #       - event: ItemUpdated(address,address,uint256,uint64,uint128,uint64,address)
-  #         handler: handleItemUpdated
-  #       - event: Paused(address)
-  #         handler: handlePaused
-  #       - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
-  #         handler: handleRoleAdminChanged
-  #       - event: RoleGranted(indexed bytes32,indexed address,indexed address)
-  #         handler: handleRoleGranted
-  #       - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
-  #         handler: handleRoleRevoked
-  #       - event: TokenApprovalStatusUpdated(address,uint8,address)
-  #         handler: handleTokenApprovalStatusUpdated
-  #       - event: TokenBidCancelled(address,address,uint256)
-  #         handler: handleTokenBidCancelled
-  #       - event: TokenBidCreatedOrUpdated(address,address,uint256,uint64,uint128,uint64,address)
-  #         handler: handleTokenBidCreatedOrUpdated
-  #       - event: Unpaused(address)
-  #         handler: handleUnpaused
-  #       - event: UpdateCollectionOwnerFee(address,address,uint256)
-  #         handler: handleUpdateCollectionOwnerFee
-  #       - event: UpdateFee(uint256)
-  #         handler: handleUpdateFee
-  #       - event: UpdateFeeRecipient(address)
-  #         handler: handleUpdateFeeRecipient
-  #       - event: UpdateFeeWithCollectionOwner(uint256)
-  #         handler: handleUpdateFeeWithCollectionOwner
-  #       - event: UpdateSalesTracker(address)
-  #         handler: handleUpdateSalesTracker
-  #     file: ./src/trevor-marketplace.ts
+  - kind: ethereum
+    name: TrevorMarketplace
+    network: trevor-sepolia
+    source:
+      address: "0x50c06ba5C0811267175F5285c3e308BA1A95ab20"
+      abi: TrevorMarketplace
+      startBlock: 18558
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        # - BidAccepted
+        # - CollectionBidCancelled
+        # - CollectionBidCreatedOrUpdated
+        # - Initialized
+        # - ItemCanceled
+        - ItemListed
+        # - ItemSold
+        # - ItemUpdated
+        # - Paused
+        # - RoleAdminChanged
+        # - RoleGranted
+        # - RoleRevoked
+        # - TokenApprovalStatusUpdated
+        # - TokenBidCancelled
+        # - TokenBidCreatedOrUpdated
+        # - Unpaused
+        # - UpdateCollectionOwnerFee
+        # - UpdateFee
+        # - UpdateFeeRecipient
+        # - UpdateFeeWithCollectionOwner
+        # - UpdateSalesTracker
+      abis:
+        - name: TrevorMarketplace
+          file: ./abis/TrevorMarketplace.json
+        - name: ERC165
+          file: ./abis/ERC165.json
+      eventHandlers:
+        # - event: BidAccepted(address,address,address,uint256,uint64,uint128,address,uint8)
+        #   handler: handleBidAccepted
+        # - event: CollectionBidCancelled(address,address)
+        #   handler: handleCollectionBidCancelled
+        # - event: CollectionBidCreatedOrUpdated(address,address,uint64,uint128,uint64,address)
+        #   handler: handleCollectionBidCreatedOrUpdated
+        # - event: Initialized(uint64)
+        #   handler: handleInitialized
+        - event: ItemCanceled(indexed address,indexed address,indexed uint256)
+          handler: handleItemCanceled
+        - event: ItemListed(address,address,uint256,uint64,uint128,uint64,address)
+          handler: handleItemListed
+        - event: ItemSold(address,address,address,uint256,uint64,uint128,address)
+          handler: handleItemSold
+        - event: ItemUpdated(address,address,uint256,uint64,uint128,uint64,address)
+          handler: handleItemUpdated
+        # - event: Paused(address)
+        #   handler: handlePaused
+        # - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
+        #   handler: handleRoleAdminChanged
+        # - event: RoleGranted(indexed bytes32,indexed address,indexed address)
+        #   handler: handleRoleGranted
+        # - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
+        #   handler: handleRoleRevoked
+        # - event: TokenApprovalStatusUpdated(address,uint8,address)
+        #   handler: handleTokenApprovalStatusUpdated
+        # - event: TokenBidCancelled(address,address,uint256)
+        #   handler: handleTokenBidCancelled
+        # - event: TokenBidCreatedOrUpdated(address,address,uint256,uint64,uint128,uint64,address)
+        #   handler: handleTokenBidCreatedOrUpdated
+        # - event: Unpaused(address)
+        #   handler: handleUnpaused
+        # - event: UpdateCollectionOwnerFee(address,address,uint256)
+        #   handler: handleUpdateCollectionOwnerFee
+        # - event: UpdateFee(uint256)
+        #   handler: handleUpdateFee
+        # - event: UpdateFeeRecipient(address)
+        #   handler: handleUpdateFeeRecipient
+        # - event: UpdateFeeWithCollectionOwner(uint256)
+        #   handler: handleUpdateFeeWithCollectionOwner
+        # - event: UpdateSalesTracker(address)
+        #   handler: handleUpdateSalesTracker
+      file: ./src/trevor-marketplace.ts
   - kind: ethereum
     name: ERC1155
     network: trevor-sepolia
@@ -102,6 +104,8 @@ dataSources:
       abis:
         - name: ERC1155
           file: ./abis/ERC1155.json
+        - name: ERC165
+          file: ./abis/ERC165.json
       eventHandlers:
         - event: TransferBatch(indexed address,indexed address,indexed address,uint256[],uint256[])
           handler: handleTransferBatch
@@ -126,6 +130,8 @@ dataSources:
       abis:
         - name: ERC721
           file: ./abis/ERC721.json
+        - name: ERC165
+          file: ./abis/ERC165.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer

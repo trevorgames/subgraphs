@@ -6,21 +6,15 @@ import {
   store,
 } from '@graphprotocol/graph-ts'
 import { Transfer as TransferEvent } from '../../generated/ERC721/ERC721'
-import { Collection, Token } from '../../generated/schema'
-import { getOrCreateUser, getOrCreateUserToken } from '../helpers'
+import { Token } from '../../generated/schema'
+import {
+  getOrCreateCollection,
+  getOrCreateUser,
+  getOrCreateUserToken,
+} from '../helpers'
 
 export function handleTransfer(event: TransferEvent): void {
-  let collection = Collection.load(event.address)
-  if (!collection) {
-    collection = new Collection(event.address)
-
-    collection.address = event.address
-    collection.standard = 'ERC721'
-
-    collection.owners = []
-    collection.totalItems = BigInt.zero()
-    collection.totalOwners = BigInt.zero()
-  }
+  let collection = getOrCreateCollection(event.address)
 
   let token = Token.load(event.address.concatI32(event.params.tokenId.toI32()))
   if (!token) {

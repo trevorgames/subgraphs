@@ -10,23 +10,13 @@ import {
   TransferSingle as TransferSingleEvent,
   URI as URIEvent,
 } from '../../generated/ERC1155/ERC1155'
-import { Collection, Token, UserToken } from '../../generated/schema'
-import { getOrCreateUser } from '../helpers'
+import { Token, UserToken } from '../../generated/schema'
+import { getOrCreateCollection, getOrCreateUser } from '../helpers'
 
 export function handleTransferBatch(event: TransferBatchEvent): void {}
 
 export function handleTransferSingle(event: TransferSingleEvent): void {
-  let collection = Collection.load(event.address)
-  if (!collection) {
-    collection = new Collection(event.address)
-
-    collection.address = event.address
-    collection.standard = 'ERC1155'
-
-    collection.owners = []
-    collection.totalItems = BigInt.zero()
-    collection.totalOwners = BigInt.zero()
-  }
+  let collection = getOrCreateCollection(event.address)
 
   let token = Token.load(event.address.concatI32(event.params.id.toI32()))
   if (!token) {

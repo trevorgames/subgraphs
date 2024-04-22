@@ -1,20 +1,31 @@
-import { BigInt, log, store } from '@graphprotocol/graph-ts'
+import { Address, BigInt, log, store } from '@graphprotocol/graph-ts'
+import { ERC20 } from '../generated/TrevorMarketplace/ERC20'
 import {
+  BidAccepted as BidAcceptedEvent,
   ItemCanceled as ItemCanceledEvent,
   ItemListed as ItemListedEvent,
   ItemSold as ItemSoldEvent,
   ItemUpdated as ItemUpdatedEvent,
+  TrevorMarketplace,
+  UpdateCollectionOwnerFee as UpdateCollectionOwnerFeeEvent,
 } from '../generated/TrevorMarketplace/TrevorMarketplace'
-import { Listing } from '../generated/schema'
+import { Listing, Trade } from '../generated/schema'
 import {
   BIGINT_ONE,
   BIGINT_ZERO,
+  MANTISSA_FACTOR,
   NftStandard,
+  convertTokenToDecimal,
+  getListingId,
+  getNativePriceInUSD,
   getOrCreateCollection,
-  getOrCreateListing,
+  getOrCreateCollectionDailySnapshot,
   getOrCreateToken,
   getOrCreateUserToken,
+  getTRVPriceInNative,
   getTokenId,
+  max,
+  min,
   updateCollectionFloorAndTotal,
 } from './helpers'
 
@@ -23,17 +34,21 @@ export function handleItemListed(event: ItemListedEvent): void {
   let tokenId = event.params.tokenId
   let seller = event.params.seller
 
-  const pricePerItem = event.params.pricePerItem
   const quantity = event.params.quantity
+  const pricePerItem = event.params.pricePerItem
+  const paymentToken = event.params.paymentToken
+  const expirationTime = event.params.expirationTime
 
   let token = getOrCreateToken(getTokenId(nftAddress, tokenId))
   let collection = getOrCreateCollection(token.collection)
 
+  // Update collection floor price
   let floorPrice = collection.floorPrice
   if (floorPrice.isZero() || floorPrice.gt(event.params.pricePerItem)) {
     collection.floorPrice = event.params.pricePerItem
   }
 
+  // Update token floor price
   if (collection.standard == NftStandard.ERC1155) {
     let tokenFloorPrice = token.floorPrice
     if (!tokenFloorPrice || tokenFloorPrice.gt(pricePerItem)) {
@@ -43,17 +58,20 @@ export function handleItemListed(event: ItemListedEvent): void {
   }
 
   collection.totalListings = collection.totalListings.plus(quantity)
+  collection.save()
 
-  let listing = getOrCreateListing(nftAddress, tokenId, seller)
-  listing.collection = collection.id
-  listing.token = token.id
-  listing.seller = seller
-  listing.quantity = quantity
-  listing.pricePerItem = pricePerItem
-  listing.expirationTime = event.params.expirationTime
-  listing.paymentToken = event.params.paymentToken
+  let listingId = getListingId(nftAddress, tokenId, seller)
+  let listing = Listing.load(listingId)
 
-  const userToken = getOrCreateUserToken(seller, token.id, BigInt.zero())
+  if (!listing) {
+    listing = new Listing(listingId)
+    listing.collection = collection.id
+    listing.token = token.id
+    listing.seller = seller
+  }
+
+  // Update user token quantity
+  const userToken = getOrCreateUserToken(seller, token.id)
   if (userToken.quantity.equals(quantity)) {
     store.remove('UserToken', userToken.id.toHexString())
   } else {
@@ -61,17 +79,25 @@ export function handleItemListed(event: ItemListedEvent): void {
     userToken.save()
   }
 
-  collection.save()
+  listing.quantity = quantity
+  listing.pricePerItem = pricePerItem
+  listing.paymentToken = paymentToken
+  listing.expirationTime = expirationTime
+
   listing.save()
 }
 
 export function handleItemUpdated(event: ItemUpdatedEvent): void {
-  let nftAddress = event.params.nftAddress
-  let tokenId = event.params.tokenId
-  let seller = event.params.seller
+  const nftAddress = event.params.nftAddress
+  const tokenId = event.params.tokenId
+  const seller = event.params.seller
 
-  let listingId = nftAddress.concatI32(tokenId.toI32()).concat(seller)
+  const quantity = event.params.quantity
+  const pricePerItem = event.params.pricePerItem
+  const paymentToken = event.params.paymentToken
+  const expirationTime = event.params.expirationTime
 
+  const listingId = getListingId(nftAddress, tokenId, seller)
   let listing = Listing.load(listingId)
 
   if (!listing) {
@@ -84,28 +110,30 @@ export function handleItemUpdated(event: ItemUpdatedEvent): void {
     return
   }
 
-  if (!listing.quantity.equals(event.params.quantity)) {
-    let userToken = getOrCreateUserToken(seller, listing.token, BigInt.zero())
+  // Update user token quantity
+  if (listing.quantity.notEqual(quantity)) {
+    let userToken = getOrCreateUserToken(seller, listing.token)
 
-    userToken.quantity = userToken.quantity.plus(
-      listing.quantity.minus(event.params.quantity),
+    const userTokenQuantity = userToken.quantity.plus(
+      listing.quantity.minus(quantity),
     )
 
-    if (userToken.quantity.isZero()) {
+    if (userTokenQuantity.isZero()) {
       store.remove('UserToken', userToken.id.toHexString())
     } else {
-      userToken.token = listing.token
-      userToken.user = seller
+      userToken.quantity = userTokenQuantity
       userToken.save()
     }
   }
 
-  if (!listing.pricePerItem.equals(event.params.pricePerItem)) {
+  if (listing.pricePerItem.notEqual(pricePerItem)) {
+    // TODO: Update block timestamp
   }
 
-  listing.quantity = event.params.quantity
-  listing.pricePerItem = event.params.pricePerItem
-  listing.expirationTime = event.params.expirationTime
+  listing.quantity = quantity
+  listing.pricePerItem = pricePerItem
+  listing.paymentToken = paymentToken
+  listing.expirationTime = expirationTime
 
   listing.save()
 
@@ -113,11 +141,11 @@ export function handleItemUpdated(event: ItemUpdatedEvent): void {
 }
 
 export function handleItemCanceled(event: ItemCanceledEvent): void {
-  let nftAddress = event.params.nftAddress
-  let tokenId = event.params.tokenId
-  let seller = event.params.seller
+  const nftAddress = event.params.nftAddress
+  const tokenId = event.params.tokenId
+  const seller = event.params.seller
 
-  let listingId = nftAddress.concatI32(tokenId.toI32()).concat(seller)
+  const listingId = getListingId(nftAddress, tokenId, seller)
   let listing = Listing.load(listingId)
 
   if (!listing) {
@@ -130,7 +158,7 @@ export function handleItemCanceled(event: ItemCanceledEvent): void {
     return
   }
 
-  let userToken = getOrCreateUserToken(seller, listing.token, BigInt.zero())
+  let userToken = getOrCreateUserToken(seller, listing.token)
   userToken.quantity = userToken.quantity.plus(listing.quantity)
   userToken.token = listing.token
   userToken.user = listing.seller
@@ -142,11 +170,16 @@ export function handleItemCanceled(event: ItemCanceledEvent): void {
 }
 
 export function handleItemSold(event: ItemSoldEvent): void {
-  let nftAddress = event.params.nftAddress
-  let tokenId = event.params.tokenId
-  let seller = event.params.seller
+  const nftAddress = event.params.nftAddress
+  const tokenId = event.params.tokenId
+  const seller = event.params.seller
+  const buyer = event.params.buyer
 
-  let listingId = nftAddress.concatI32(tokenId.toI32()).concat(seller)
+  const quantity = event.params.quantity
+  const pricePerItem = event.params.pricePerItem
+  const paymentTokenAddress = event.params.paymentToken
+
+  const listingId = getListingId(nftAddress, tokenId, seller)
   let listing = Listing.load(listingId)
 
   if (!listing) {
@@ -159,41 +192,244 @@ export function handleItemSold(event: ItemSoldEvent): void {
     return
   }
 
+  // Update collection
   let collection = getOrCreateCollection(listing.collection)
-
   collection.totalSales = collection.totalSales.plus(BIGINT_ONE)
   collection.totalVolume = collection.totalVolume.plus(
-    listing.pricePerItem.times(listing.quantity),
+    listing.pricePerItem.times(quantity),
   )
 
-  if (listing.quantity.equals(event.params.quantity)) {
+  if (listing.quantity.equals(quantity)) {
     store.remove('Listing', listingId.toHexString())
 
     if (collection.standard == NftStandard.ERC1155) {
       // TODO
     }
   } else {
-    listing.quantity = listing.quantity.minus(event.params.quantity)
+    listing.quantity = listing.quantity.minus(quantity)
     listing.save()
   }
 
+  // update collection
+  const paymentToken = ERC20.bind(paymentTokenAddress)
+  const paymentTokenDecimals = BigInt.fromI32(paymentToken.decimals())
+  const totalAmount = pricePerItem.times(quantity)
+  const totalAmountDec = convertTokenToDecimal(
+    totalAmount,
+    paymentTokenDecimals,
+  )
+
+  const trvPriceInNative = getTRVPriceInNative()
+  const nativePriceInUSD = getNativePriceInUSD()
+
+  collection.cumulativeTradeVolumeTRV =
+    collection.cumulativeTradeVolumeTRV.plus(totalAmountDec)
+  collection.cumulativeTradeVolumeETH =
+    collection.cumulativeTradeVolumeETH.plus(
+      totalAmountDec.times(trvPriceInNative),
+    )
+  collection.cumulativeTradeVolumeUSD =
+    collection.cumulativeTradeVolumeUSD.plus(
+      totalAmountDec.times(trvPriceInNative).times(nativePriceInUSD),
+    )
+
+  let protocolFee: BigInt = BIGINT_ZERO
+  let royaltyFee: BigInt = BIGINT_ZERO
+
+  if (collection.royaltyFee && collection.royaltyFee.gt(BIGINT_ZERO)) {
+    const fee = TrevorMarketplace.bind(event.address).feeWithCollectionOwner()
+    protocolFee = totalAmount.times(fee).div(BigInt.fromI32(10000))
+    royaltyFee = totalAmount
+      .times(collection.royaltyFee)
+      .div(BigInt.fromI32(10000))
+  } else {
+    const fee = TrevorMarketplace.bind(event.address).fee()
+    protocolFee = totalAmount.times(fee).div(BigInt.fromI32(10000))
+  }
+
+  const protocolFeeDec = convertTokenToDecimal(
+    protocolFee,
+    paymentTokenDecimals,
+  )
+  const royaltyFeeDec = convertTokenToDecimal(royaltyFee, paymentTokenDecimals)
+
+  collection.marketplaceRevenueTRV =
+    collection.marketplaceRevenueTRV.plus(protocolFeeDec)
+  collection.marketplaceRevenueETH = collection.marketplaceRevenueETH.plus(
+    protocolFeeDec.times(trvPriceInNative),
+  )
+  collection.marketplaceRevenueUSD = collection.marketplaceRevenueUSD.plus(
+    protocolFeeDec.times(trvPriceInNative).times(nativePriceInUSD),
+  )
+
+  collection.creatorRevenueTRV =
+    collection.creatorRevenueTRV.plus(royaltyFeeDec)
+  collection.creatorRevenueETH = collection.creatorRevenueETH.plus(
+    royaltyFeeDec.times(trvPriceInNative),
+  )
+  collection.creatorRevenueUSD = collection.creatorRevenueUSD.plus(
+    royaltyFeeDec.times(trvPriceInNative).times(nativePriceInUSD),
+  )
+
+  collection.tradeCount += 1
+
   collection.save()
 
-  let soldId = event.transaction.hash
-    .concatI32(event.transactionLogIndex.toI32())
-    .concat(listing.id)
-  let sold = new Listing(soldId)
+  let trade = new Trade(
+    event.transaction.hash.concatI32(event.logIndex.toI32()),
+  )
 
-  sold.collection = listing.collection
-  sold.token = listing.token
-  sold.seller = listing.seller
-  sold.quantity = event.params.quantity
-  sold.pricePerItem = event.params.pricePerItem
-  sold.expirationTime = BIGINT_ZERO
-  sold.paymentToken = event.params.paymentToken
-  sold.buyer = event.params.buyer
+  trade.timestamp = event.block.timestamp
+  trade.blockNumber = event.block.number
+  trade.transactionHash = event.transaction.hash
+  trade.logIndex = event.logIndex
 
-  sold.save()
+  trade.collection = listing.collection
+  trade.token = listing.token
+  trade.from = seller
+  trade.to = buyer
+  trade.quantity = quantity
+  trade.pricePerItem = pricePerItem
+  trade.paymentToken = paymentTokenAddress
+  trade.save()
 
   updateCollectionFloorAndTotal(collection)
+
+  const collectionSnapshot = getOrCreateCollectionDailySnapshot(
+    collection.id,
+    event.block.timestamp,
+  )
+  collectionSnapshot.blockNumber = event.block.number
+  collectionSnapshot.timestamp = event.block.timestamp
+  collectionSnapshot.royaltyFee = collection.royaltyFee
+
+  collectionSnapshot.dailyMinSalePriceTRV = min(
+    collectionSnapshot.dailyMinSalePriceTRV,
+    pricePerItem.toBigDecimal().div(MANTISSA_FACTOR),
+  )
+  collectionSnapshot.dailyMinSalePriceETH =
+    collectionSnapshot.dailyMinSalePriceTRV.times(trvPriceInNative)
+  collectionSnapshot.dailyMinSalePriceUSD =
+    collectionSnapshot.dailyMinSalePriceETH.times(nativePriceInUSD)
+
+  collectionSnapshot.dailyMaxSalePriceTRV = max(
+    collectionSnapshot.dailyMaxSalePriceTRV,
+    pricePerItem.toBigDecimal().div(MANTISSA_FACTOR),
+  )
+  collectionSnapshot.dailyMaxSalePriceETH =
+    collectionSnapshot.dailyMaxSalePriceTRV.times(trvPriceInNative)
+  collectionSnapshot.dailyMaxSalePriceUSD =
+    collectionSnapshot.dailyMaxSalePriceETH.times(nativePriceInUSD)
+
+  collectionSnapshot.cumulativeTradeVolumeTRV =
+    collection.cumulativeTradeVolumeTRV
+  collectionSnapshot.cumulativeTradeVolumeETH =
+    collection.cumulativeTradeVolumeETH
+  collectionSnapshot.cumulativeTradeVolumeUSD =
+    collection.cumulativeTradeVolumeUSD
+  collectionSnapshot.marketplaceRevenueTRV = collection.marketplaceRevenueTRV
+  collectionSnapshot.marketplaceRevenueETH = collection.marketplaceRevenueETH
+  collectionSnapshot.marketplaceRevenueUSD = collection.marketplaceRevenueUSD
+  collectionSnapshot.creatorRevenueTRV = collection.creatorRevenueTRV
+  collectionSnapshot.creatorRevenueETH = collection.creatorRevenueETH
+  collectionSnapshot.creatorRevenueUSD = collection.creatorRevenueUSD
+  collectionSnapshot.totalRevenueETH = collection.totalRevenueETH
+  collectionSnapshot.tradeCount = collection.tradeCount
+  collectionSnapshot.dailyTradeVolumeTRV =
+    collectionSnapshot.dailyTradeVolumeTRV.plus(
+      pricePerItem.times(quantity).toBigDecimal().div(MANTISSA_FACTOR),
+    )
+  collectionSnapshot.dailyTradeVolumeETH =
+    collectionSnapshot.dailyTradeVolumeTRV.times(trvPriceInNative)
+  collectionSnapshot.dailyTradeVolumeUSD =
+    collectionSnapshot.dailyTradeVolumeETH.times(nativePriceInUSD)
+  collectionSnapshot.dailyTradedItemCount += 1
+  collectionSnapshot.save()
+}
+
+export function handleBidAccepted(event: BidAcceptedEvent): void {
+  const nftAddress = event.params.nftAddress
+  const tokenId = event.params.tokenId
+  const bidder = event.params.bidder
+
+  const quantity = event.params.quantity
+  const pricePerItem = event.params.pricePerItem
+  const paymentTokenAddress = event.params.paymentToken
+
+  let collection = getOrCreateCollection(nftAddress)
+
+  // update collection
+  const paymentToken = ERC20.bind(paymentTokenAddress)
+  const paymentTokenDecimals = BigInt.fromI32(paymentToken.decimals())
+  const totalAmount = pricePerItem.times(quantity)
+  const totalAmountDec = convertTokenToDecimal(
+    totalAmount,
+    paymentTokenDecimals,
+  )
+
+  const trvPriceInNative = getTRVPriceInNative()
+  const nativePriceInUSD = getNativePriceInUSD()
+
+  collection.cumulativeTradeVolumeTRV =
+    collection.cumulativeTradeVolumeTRV.plus(totalAmountDec)
+  collection.cumulativeTradeVolumeETH =
+    collection.cumulativeTradeVolumeETH.plus(
+      totalAmountDec.times(trvPriceInNative),
+    )
+  collection.cumulativeTradeVolumeUSD =
+    collection.cumulativeTradeVolumeUSD.plus(
+      totalAmountDec.times(trvPriceInNative).times(nativePriceInUSD),
+    )
+
+  let protocolFee: BigInt = BIGINT_ZERO
+  let royaltyFee: BigInt = BIGINT_ZERO
+
+  if (collection.royaltyFee && collection.royaltyFee.gt(BIGINT_ZERO)) {
+    const fee = TrevorMarketplace.bind(event.address).feeWithCollectionOwner()
+    protocolFee = totalAmount.times(fee).div(BigInt.fromI32(10000))
+    royaltyFee = totalAmount
+      .times(collection.royaltyFee)
+      .div(BigInt.fromI32(10000))
+  } else {
+    const fee = TrevorMarketplace.bind(event.address).fee()
+    protocolFee = totalAmount.times(fee).div(BigInt.fromI32(10000))
+  }
+
+  const protocolFeeDec = convertTokenToDecimal(
+    protocolFee,
+    paymentTokenDecimals,
+  )
+  const royaltyFeeDec = convertTokenToDecimal(royaltyFee, paymentTokenDecimals)
+
+  collection.marketplaceRevenueTRV =
+    collection.marketplaceRevenueTRV.plus(protocolFeeDec)
+  collection.marketplaceRevenueETH = collection.marketplaceRevenueETH.plus(
+    protocolFeeDec.times(trvPriceInNative),
+  )
+  collection.marketplaceRevenueUSD = collection.marketplaceRevenueUSD.plus(
+    protocolFeeDec.times(trvPriceInNative).times(nativePriceInUSD),
+  )
+
+  collection.creatorRevenueTRV =
+    collection.creatorRevenueTRV.plus(royaltyFeeDec)
+  collection.creatorRevenueETH = collection.creatorRevenueETH.plus(
+    royaltyFeeDec.times(trvPriceInNative),
+  )
+  collection.creatorRevenueUSD = collection.creatorRevenueUSD.plus(
+    royaltyFeeDec.times(trvPriceInNative).times(nativePriceInUSD),
+  )
+
+  collection.tradeCount += 1
+
+  collection.save()
+}
+
+export function handleUpdateCollectionOwnerFee(
+  event: UpdateCollectionOwnerFeeEvent,
+): void {
+  let collection = getOrCreateCollection(event.params._collection)
+  if (event.params._recipient != Address.zero()) {
+    collection.royaltyFee = event.params._fee
+    collection.save()
+  }
 }

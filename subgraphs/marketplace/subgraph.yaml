@@ -42,9 +42,15 @@ dataSources:
           file: ./abis/TrevorMarketplace.json
         - name: ERC165
           file: ./abis/ERC165.json
+        - name: Factory
+          file: ./abis/UniswapV2Factory.json
+        - name: Pair
+          file: ./abis/UniswapV2Pair.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
-        # - event: BidAccepted(address,address,address,uint256,uint64,uint128,address,uint8)
-        #   handler: handleBidAccepted
+        - event: BidAccepted(address,address,address,uint256,uint64,uint128,address,uint8)
+          handler: handleBidAccepted
         # - event: CollectionBidCancelled(address,address)
         #   handler: handleCollectionBidCancelled
         # - event: CollectionBidCreatedOrUpdated(address,address,uint64,uint128,uint64,address)
@@ -75,8 +81,8 @@ dataSources:
         #   handler: handleTokenBidCreatedOrUpdated
         # - event: Unpaused(address)
         #   handler: handleUnpaused
-        # - event: UpdateCollectionOwnerFee(address,address,uint256)
-        #   handler: handleUpdateCollectionOwnerFee
+        - event: UpdateCollectionOwnerFee(address,address,uint256)
+          handler: handleUpdateCollectionOwnerFee
         # - event: UpdateFee(uint256)
         #   handler: handleUpdateFee
         # - event: UpdateFeeRecipient(address)

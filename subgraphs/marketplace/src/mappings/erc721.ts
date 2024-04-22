@@ -8,6 +8,7 @@ import {
 import { Transfer as TransferEvent } from '../../generated/ERC721/ERC721'
 import { Token } from '../../generated/schema'
 import {
+  BIGINT_ONE,
   getOrCreateCollection,
   getOrCreateUser,
   getOrCreateUserToken,
@@ -52,7 +53,10 @@ export function handleTransfer(event: TransferEvent): void {
   collection.totalOwners = BigInt.fromI32(owners.entries.length)
 
   // create UserToken
-  getOrCreateUserToken(toUser.id, token.id, BigInt.fromI32(1))
+  let userToken = getOrCreateUserToken(toUser.id, token.id)
+  userToken.quantity = BIGINT_ONE
+  userToken.save()
+
   token.owner = toUser.id
 
   collection.save()

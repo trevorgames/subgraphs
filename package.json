@@ -1,7 +1,10 @@
 {
   "name": "subgraphs",
   "private": true,
-  "workspaces": ["packages/*", "subgraphs/*"],
+  "workspaces": [
+    "packages/*",
+    "subgraphs/*"
+  ],
   "scripts": {
     "build": "bunx turbo run build",
     "test": "bunx turbo run test",
@@ -13,6 +16,7 @@
     "@graphprotocol/graph-ts": "^0.34.0",
     "@turbo/codemod": "^1.13.2",
     "mustache": "^4.2.0",
+    "prettier": "^3.2.5",
     "turbo": "^1.13.2"
   }
 }

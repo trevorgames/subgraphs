@@ -2,8 +2,11 @@ import { BigInt, Bytes } from '@graphprotocol/graph-ts'
 import { UserToken } from '../../generated/schema'
 import { BIGINT_ZERO } from './constants'
 
-export function getOrCreateUserToken(userId: Bytes, tokenId: Bytes): UserToken {
-  let id = userId.concat(tokenId)
+export function getOrCreateUserToken(
+  userId: string,
+  tokenId: string,
+): UserToken {
+  let id = Bytes.fromHexString(userId).concat(Bytes.fromHexString(tokenId))
   let userToken = UserToken.load(id)
 
   if (!userToken) {

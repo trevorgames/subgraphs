@@ -102,10 +102,11 @@ export function updateCollectionFloorAndTotal(collection: Collection): void {
     let pricePerItem = listing.pricePerItem
 
     if (collection.standard == NftStandard.ERC1155) {
-      let tokenFloorPrice = floorPrices.get(listing.token)
+      const tokenId = Bytes.fromHexString(listing.token)
+      let tokenFloorPrice = floorPrices.get(tokenId)
 
       if (!tokenFloorPrice || tokenFloorPrice.gt(pricePerItem)) {
-        floorPrices.set(listing.token, pricePerItem)
+        floorPrices.set(tokenId, pricePerItem)
       }
     }
 
@@ -118,7 +119,7 @@ export function updateCollectionFloorAndTotal(collection: Collection): void {
 
   for (let index = 0; index < floorPrices.entries.length; index++) {
     let entry = floorPrices.entries[index]
-    let token = Token.load(entry.key)
+    let token = Token.load(entry.key.toHexString())
 
     if (token) {
       token.floorPrice = entry.value

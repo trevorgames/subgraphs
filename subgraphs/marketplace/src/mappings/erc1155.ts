@@ -18,9 +18,13 @@ export function handleTransferBatch(event: TransferBatchEvent): void {}
 export function handleTransferSingle(event: TransferSingleEvent): void {
   let collection = getOrCreateCollection(event.address)
 
-  let token = Token.load(event.address.concatI32(event.params.id.toI32()))
+  let token = Token.load(
+    event.address.concatI32(event.params.id.toI32()).toHexString(),
+  )
   if (!token) {
-    token = new Token(event.address.concatI32(event.params.id.toI32()))
+    token = new Token(
+      event.address.concatI32(event.params.id.toI32()).toHexString(),
+    )
 
     token.collection = collection.id
     token.tokenId = event.params.id
@@ -31,7 +35,9 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   let toUser = getOrCreateUser(event.params.to)
 
   if (event.params.from.equals(Address.zero())) {
-    let toUserToken = new UserToken(toUser.id.concat(token.id))
+    let toUserToken = new UserToken(
+      Bytes.fromHexString(toUser.id.concat(token.id)),
+    )
     toUserToken.user = toUser.id
     toUserToken.token = token.id
     toUserToken.quantity = event.params.value
@@ -40,11 +46,17 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
     collection.owners = collection.owners.concat([toUser.id])
     collection.totalItems = collection.totalItems.plus(event.params.value)
   } else {
-    let fromUserToken = UserToken.load(fromUser.id.concat(token.id))
-    let toUserToken = UserToken.load(toUser.id.concat(token.id))
+    let fromUserToken = UserToken.load(
+      Bytes.fromHexString(fromUser.id.concat(token.id)),
+    )
+    let toUserToken = UserToken.load(
+      Bytes.fromHexString(toUser.id.concat(token.id)),
+    )
 
     if (!toUserToken) {
-      toUserToken = new UserToken(toUser.id.concat(token.id))
+      toUserToken = new UserToken(
+        Bytes.fromHexString(toUser.id.concat(token.id)),
+      )
       toUserToken.user = toUser.id
       toUserToken.token = token.id
       toUserToken.quantity = event.params.value
@@ -79,13 +91,15 @@ export function handleTransferSingle(event: TransferSingleEvent): void {
   let owners = new TypedMap<Bytes, boolean>()
   for (let index = 0; index < collection.tokens.load().length; index++) {
     let tokenId = collection.tokens.load().at(index).tokenId
-    let token = Token.load(collection.id.concatI32(tokenId.toI32()))
+    let token = Token.load(
+      collection.id.concatI32(tokenId.toI32()).toHexString(),
+    )
 
     if (token) {
       for (let j = 0; j < token.owners.load().length; j++) {
         let owner = token.owners.load()[j].user
-        if (!owners.isSet(owner)) {
-          owners.set(owner, true)
+        if (!owners.isSet(Bytes.fromHexString(owner))) {
+          owners.set(Bytes.fromHexString(owner), true)
         }
       }
     }

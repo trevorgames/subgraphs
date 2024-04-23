@@ -78,7 +78,7 @@ type Collection @entity {
 }
 
 type Token @entity {
-  id: Bytes!
+  id: ID!
 
   collection: Collection!
   tokenId: BigInt!
@@ -143,7 +143,7 @@ type CollectionBid @entity {
 }
 
 type User @entity {
-  id: Bytes!
+  id: ID!
 
   tokens: [UserToken!]! @derivedFrom(field: "user")
   listings: [Listing!]! @derivedFrom(field: "seller")

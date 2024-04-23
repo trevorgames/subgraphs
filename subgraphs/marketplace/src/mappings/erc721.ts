@@ -17,9 +17,13 @@ import {
 export function handleTransfer(event: TransferEvent): void {
   let collection = getOrCreateCollection(event.address)
 
-  let token = Token.load(event.address.concatI32(event.params.tokenId.toI32()))
+  let token = Token.load(
+    event.address.concatI32(event.params.tokenId.toI32()).toHexString(),
+  )
   if (!token) {
-    token = new Token(event.address.concatI32(event.params.tokenId.toI32()))
+    token = new Token(
+      event.address.concatI32(event.params.tokenId.toI32()).toHexString(),
+    )
 
     token.collection = collection.id
     token.tokenId = event.params.tokenId
@@ -31,7 +35,12 @@ export function handleTransfer(event: TransferEvent): void {
   if (event.params.from.equals(Address.zero())) {
     collection.totalItems = collection.totalItems.plus(BigInt.fromI32(1))
   } else {
-    store.remove('UserToken', fromUser.id.concat(token.id).toHexString())
+    store.remove(
+      'UserToken',
+      Bytes.fromHexString(fromUser.id)
+        .concat(Bytes.fromHexString(token.id))
+        .toHexString(),
+    )
   }
 
   let collectionOwners = collection.owners.concat([toUser.id])
@@ -46,8 +55,8 @@ export function handleTransfer(event: TransferEvent): void {
   let owners = new TypedMap<Bytes, boolean>()
   for (let index = 0; index < collection.owners.length; index++) {
     let owner = collection.owners[index]
-    if (!owners.isSet(owner)) {
-      owners.set(owner, true)
+    if (!owners.isSet(Bytes.fromHexString(owner))) {
+      owners.set(Bytes.fromHexString(owner), true)
     }
   }
   collection.totalOwners = BigInt.fromI32(owners.entries.length)

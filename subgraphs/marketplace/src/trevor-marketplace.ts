@@ -67,11 +67,11 @@ export function handleItemListed(event: ItemListedEvent): void {
     listing = new Listing(listingId)
     listing.collection = collection.id
     listing.token = token.id
-    listing.seller = seller
+    listing.seller = seller.toHexString()
   }
 
   // Update user token quantity
-  const userToken = getOrCreateUserToken(seller, token.id)
+  const userToken = getOrCreateUserToken(seller.toHexString(), token.id)
   if (userToken.quantity.equals(quantity)) {
     store.remove('UserToken', userToken.id.toHexString())
   } else {
@@ -112,7 +112,7 @@ export function handleItemUpdated(event: ItemUpdatedEvent): void {
 
   // Update user token quantity
   if (listing.quantity.notEqual(quantity)) {
-    let userToken = getOrCreateUserToken(seller, listing.token)
+    let userToken = getOrCreateUserToken(seller.toHexString(), listing.token)
 
     const userTokenQuantity = userToken.quantity.plus(
       listing.quantity.minus(quantity),
@@ -158,7 +158,7 @@ export function handleItemCanceled(event: ItemCanceledEvent): void {
     return
   }
 
-  let userToken = getOrCreateUserToken(seller, listing.token)
+  let userToken = getOrCreateUserToken(seller.toHexString(), listing.token)
   userToken.quantity = userToken.quantity.plus(listing.quantity)
   userToken.token = listing.token
   userToken.user = listing.seller
@@ -286,8 +286,8 @@ export function handleItemSold(event: ItemSoldEvent): void {
 
   trade.collection = listing.collection
   trade.token = listing.token
-  trade.from = seller
-  trade.to = buyer
+  trade.from = seller.toHexString()
+  trade.to = buyer.toHexString()
   trade.quantity = quantity
   trade.pricePerItem = pricePerItem
   trade.paymentToken = paymentTokenAddress

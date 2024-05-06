@@ -39,7 +39,7 @@ export function handleItemListed(event: ItemListedEvent): void {
   const paymentToken = event.params.paymentToken
   const expirationTime = event.params.expirationTime
 
-  let token = getOrCreateToken(getTokenId(nftAddress, tokenId))
+  let token = getOrCreateToken(nftAddress, tokenId)
   let collection = getOrCreateCollection(token.collection)
 
   // Update collection floor price

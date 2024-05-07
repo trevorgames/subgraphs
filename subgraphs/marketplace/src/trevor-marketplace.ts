@@ -66,6 +66,7 @@ export function handleItemListed(event: ItemListedEvent): void {
   if (!listing) {
     listing = new Listing(listingId)
     listing.collection = collection.id
+    listing.tokenId = tokenId
     listing.token = token.id
     listing.seller = seller.toHexString()
   }
